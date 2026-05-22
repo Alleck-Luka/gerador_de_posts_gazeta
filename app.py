@@ -138,10 +138,10 @@ def processar_card(card_id):
     # anexar no card
     anexar(card_id, output)
 
-@app.route("/trello-webhook", methods=["POST", "HEAD"])
+@app.route("/trello-webhook", methods=["GET", "POST", "HEAD"])
 def trello_webhook():
-    if request.method == "HEAD":
-        return "", 200  # Trello testa isso
+    if request.method in ["HEAD", "GET"]:
+        return "Webhook ativo", 200
 
     data = request.json
     if not data or "action" not in data:
