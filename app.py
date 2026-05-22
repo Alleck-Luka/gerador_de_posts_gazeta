@@ -13,15 +13,17 @@ TOKEN = os.getenv("TOKEN")
 
 app = Flask(__name__)
 
-def anexar(card_id, caminho):
+def anexar(card_id, caminhos):
     url = f"https://api.trello.com/1/cards/{card_id}/attachments"
 
-    with open(caminho, "rb") as f:
-        requests.post(
-            url,
-            params={"key": API_KEY, "token": TOKEN},
-            files={"file": f}
-        )
+    for caminho in caminhos:
+        with open(caminho, "rb") as f:
+            requests.post(
+                url,
+                params={"key": API_KEY, "token": TOKEN},
+                files={"file": f}
+            )
+        os.remove(caminho)
 
 def processar_card(card_id):
     url = f"https://api.trello.com/1/cards/{card_id}"
@@ -43,7 +45,8 @@ def processar_card(card_id):
     card = response.json()
 
     titulo = card["name"]
-    categoria = card["desc"]
+
+    categoria = card["labels"][0]["name"]
 
     # pegar imagem
     imagem_url = None
@@ -72,7 +75,6 @@ def processar_card(card_id):
 
     img_bytes = BytesIO(response_img.content)
 
-    # gerar post
     output = gerar_post(titulo, categoria, img_bytes)
 
     # anexar no card

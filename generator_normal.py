@@ -1,6 +1,6 @@
 from PIL import ImageDraw, Image, ImageFont
 
-from helper import escolher_logo
+from helper import ajustar_fonte_titulo, escolher_logo
 
 logo_branca = "./assets/logo_white.png"
 logo_preta = "./assets/logo_black.png"
@@ -59,38 +59,6 @@ def render_feed(base, titulo, categoria):
         font=font_categoria
     )
 
-    # --- Título com auto-resize (máx 3 linhas, alinhado à esquerda) ---
-
-    def ajustar_fonte_titulo(draw, texto, font_path, max_width, max_lines, start_size):
-        size = start_size
-
-        while size > 20:  # limite de segurança
-            font = ImageFont.truetype(font_path, size)
-
-            # wrap
-            words = texto.split()
-            lines = []
-            current = ""
-
-            for word in words:
-                test = f"{current} {word}".strip()
-                w = draw.textbbox((0,0), test, font=font)[2]
-
-                if w <= max_width:
-                    current = test
-                else:
-                    lines.append(current)
-                    current = word
-
-            lines.append(current)
-
-            if len(lines) <= max_lines:
-                return font, lines
-
-            size -= 1
-
-        return font, lines  # fallback
-
 
     # 🔹 usar função
     font_titulo, lines = ajustar_fonte_titulo(
@@ -101,6 +69,9 @@ def render_feed(base, titulo, categoria):
         max_lines=3,
         start_size=50
     )
+
+    if(font_titulo == None):
+        raise RuntimeError("Erro de fonte")
 
     # opcional: bold seguro
     if hasattr(font_titulo, "get_variation_names"):
@@ -174,6 +145,36 @@ def render_feed(base, titulo, categoria):
     # xy = (WIDTH//2 - logo_w//2, 135)
     # logo_w, logo_h = logo.size
     # xy = (WIDTH - 143 - logo_w, 135)
+
+    if grad:
+
+        grad_w = 1347
+        grad_h = 267
+
+        grad_x = -133
+        grad_y = -7
+
+        gradient = Image.new("RGBA", (grad_w, grad_h), (0,0,0,0))
+        draw_grad = ImageDraw.Draw(gradient)
+
+        for y in range(grad_h):
+
+            t = y / grad_h
+
+            # cor: #101010 -> #1d1d1d
+            r = int(16 + ((29 - 16) * t))
+            g = int(16 + ((29 - 16) * t))
+            b = int(16 + ((29 - 16) * t))
+
+            # alpha: 255 -> 0
+            alpha = int(255 * (1 - t))
+
+            draw_grad.line(
+                [(0, y), (grad_w, y)],
+                fill=(r, g, b, alpha)
+            )
+
+        img.alpha_composite(gradient, (grad_x, grad_y))
 
     img.paste(logo, xy, logo)
 
@@ -298,6 +299,33 @@ def render_story(base, titulo):
     # xy = (WIDTH//2 - logo_w//2, 135)
     # logo_w, logo_h = logo.size
     # xy = (WIDTH - 143 - logo_w, 135)
+    if grad:
+
+        grad_w = 1089
+        grad_h = 537
+
+        grad_x = -9
+        grad_y = 0
+
+        gradient = Image.new("RGBA", (grad_w, grad_h), (0,0,0,0))
+        draw_grad = ImageDraw.Draw(gradient)
+
+        for y in range(grad_h):
+
+            t = y / grad_h
+
+            r = int(16 + ((29 - 16) * t))
+            g = int(16 + ((29 - 16) * t))
+            b = int(16 + ((29 - 16) * t))
+
+            alpha = int(255 * (1 - t))
+
+            draw_grad.line(
+                [(0, y), (grad_w, y)],
+                fill=(r, g, b, alpha)
+            )
+
+        img.alpha_composite(gradient, (grad_x, grad_y))
 
     img.paste(logo, xy, logo)
 

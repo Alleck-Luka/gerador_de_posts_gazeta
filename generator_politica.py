@@ -28,14 +28,20 @@ def render_story_politica(titulo, categoria, bg_source):
     )
 
     # --- Categoria ---
-    draw.rectangle(
-        [234, 1353, 234 + 591, 1353 + 117],
-        fill="#d51317"
-    )
+    if categoria != "Eleições 2026":
+        draw.rectangle(
+            [234, 1353, 234 + 591, 1353 + 117],
+            fill="#d51317"
+        )
+    else:
+        draw.rectangle(
+            [234 -50, 1353, 234 + 591+50, 1353 + 117],
+            fill="#d51317"
+        )  
 
     font_cat = ImageFont.truetype("./assets/Montserrat-Bold.ttf", 90)
 
-    bbox = draw.textbbox((0,0), categoria, font=font_cat)
+    bbox = draw.textbbox((0,0), categoria, font=font_cat) # começa em 0,0 para pegar o width e o height, pois os numeros retornados são: l,t,r,b, e r e b são positivos
     text_w = bbox[2]
     text_h = bbox[3]
 
@@ -146,16 +152,37 @@ def render_feed_politica(titulo, categoria, bg_source):
     )
 
     # --- Retângulo vermelho (categoria fundo) ---
-    draw.rectangle(
-        [666, 1739, 666 + 649, 1739 + 129],
-        fill="#d51317"
-    )
+    if categoria != "Eleições 2026":
+        draw.rectangle(
+            [666, 1739, 666 + 649, 1739 + 129],
+            fill="#d51317"
+        )
+    else:
+        draw.rectangle(
+            [666-50, 1739, 666 + 649 + 50, 1739 + 129],
+            fill="#d51317"
+        )
 
     # --- Fonte categoria ---
     font_cat = ImageFont.truetype("./assets/Montserrat-Bold.ttf", 100)
 
+    # draw.text(
+    #     (WIDTH // 2, 1760),
+    #     categoria,
+    #     fill="#fafafc",
+    #     font=font_cat,
+    #     anchor="mt"
+    # )
+
+    bbox = draw.textbbox((0,0), categoria, font=font_cat) # começa em 0,0 para pegar o width e o height, pois os numeros retornados são: l,t,r,b, e r e b são positivos
+    text_w = bbox[2]
+    text_h = bbox[3]
+    print(text_h)
+
+    # (831, 1740)
+
     draw.text(
-        (831, 1740),
+        (666 + (649 - text_w)//2, 1739 + (129 - 121)//2),
         categoria,
         fill="#fafafc",
         font=font_cat

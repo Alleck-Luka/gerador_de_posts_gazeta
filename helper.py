@@ -2,6 +2,13 @@ from PIL import ImageFont, Image, ImageStat, ImageChops
 
 type Posicao = tuple[str, tuple[int, int, int, int]]  
 
+import re
+
+def limpar_nome_arquivo(nome):
+    nome = re.sub(r'[<>:"/\\|?*]', '', nome)
+    nome = nome.strip()
+    return nome[:100]  # evita nomes gigantes
+
 def aplicar_overlay_local(base_img, layer_img, x, y):
     w, h = layer_img.size
 
@@ -95,36 +102,105 @@ def gerar_base(bg_source):
 
     return cover_top(img, 1080, 1920)
 
+def score_logo(area: Image.Image, logo_color: str):
+    gray = area.convert("L")
+    stat = ImageStat.Stat(gray)
+
+    media = stat.mean[0]
+    desvio = stat.stddev[0]
+
+    hist = gray.histogram()
+
+    escuros = sum(hist[:80])
+    claros = sum(hist[175:])
+
+    total = sum(hist)
+
+    pct_escuro = escuros / total
+    pct_claro = claros / total
+
+    # -------------------------
+    # CONTRASTE BASE
+    # -------------------------
+
+    if logo_color == "branca":
+        contraste = 255 - media
+        dominancia = pct_escuro
+    else:
+        contraste = media
+        dominancia = pct_claro
+
+    # -------------------------
+    # DISTÂNCIA DO CINZA MÉDIO
+    # -------------------------
+
+    distancia_meio = abs(media - 127)
+
+    # -------------------------
+    # PENALIDADE DE TEXTURA
+    # -------------------------
+
+    penalidade_textura = desvio * 1.4
+
+    score = (
+        contraste * 1.8
+        + dominancia * 120
+        + distancia_meio * 1.2
+        - penalidade_textura
+    )
+
+    return score
+
 # Escolhe a logo baseado em melhor contraste entre uma lista de posições posicoes: list[Posicao]
-def escolher_logo(img: Image.Image, posicoes: list[Posicao]):
-    melhor = {}
+def escolher_logo(img: Image.Image, posicoes):
+
+    if not posicoes:
+        return "top-left", "branca", False
+
+    melhor = None
 
     for nome, box in posicoes:
         area = img.crop(box)
-        brilho = brilho_medio(area)
 
-        # contraste ideal: longe do meio (~127)
-        contraste = abs(brilho - 127)
+        branca = score_logo(area, "branca")
+        preta = score_logo(area, "preta")
 
-        if not melhor or contraste > melhor["contraste"]:
-            melhor = {
-                "pos": nome,
-                "box": box,
-                "brilho": brilho,
-                "contraste": contraste
-            }
+        if branca > preta:
+            cor = "branca"
+            score = branca
+        else:
+            cor = "preta"
+            score = preta
 
-    # decidir cor da logo
-    if melhor["brilho"] < 140:
-        cor = "branca"
-    else:
-        cor = "preta"
+        # contraste local
+        desvio = ImageStat.Stat(area.convert("L")).stddev[0]
 
-    # decidir se precisa gradiente
-    precisa_gradiente = melhor["contraste"] < 40
+        print(desvio)
+        gray = area.convert("L")
+        stat = ImageStat.Stat(gray)
 
-    return melhor["pos"], cor, precisa_gradiente
+        media = stat.mean[0]
+        desvio = stat.stddev[0]
 
-def brilho_medio(img):
-    stat = ImageStat.Stat(img.convert("L"))  # escala de cinza
-    return stat.mean[0]  # 0 (preto) → 255 (branco)
+        print("media:", media)
+        print("desvio:", desvio)
+
+        precisa_gradiente = (
+            abs(media - 127) < 45
+            or desvio > 45
+        )
+
+        atual = {
+            "pos": nome,
+            "cor": cor,
+            "score": score,
+            "grad": precisa_gradiente
+        }
+
+        if melhor is None or atual["score"] > melhor["score"]:
+            melhor = atual
+    
+    if melhor is None:
+        return "top-left", "branca", False    
+
+    return melhor["pos"], melhor["cor"], melhor["grad"]
