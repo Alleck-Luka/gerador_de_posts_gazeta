@@ -201,6 +201,9 @@ def escolher_logo(img: Image.Image, posicoes):
             melhor = atual
     
     if melhor is None:
-        return "top-left", "branca", False    
+        return "top-left", "branca", False
+    
+    if melhor["cor"] == "preta":
+        melhor["grad"] = False
 
     return melhor["pos"], melhor["cor"], melhor["grad"]
