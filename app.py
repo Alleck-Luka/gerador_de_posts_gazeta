@@ -8,6 +8,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 LIST_NAME = "Agendar Nas Redes"
+BOARD_ID = os.getenv("BOARD_ID")
 load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
@@ -83,13 +84,19 @@ def processar_card(card_id):
     response = requests.get(url, params=params)
 
     app.logger.info(f"STATUS: {response.status_code}")
-    app.logger.info(f"RESPOSTA:", response.text[:200])
-
+    app.logger.info("RESPOSTA: %s", response.text[:200])
 
     if response.status_code != 200:
         return
 
     card = response.json()
+
+    if card.get("idBoard") != BOARD_ID:
+        app.logger.info(
+            "Card ignorado: pertence a outra board. Board: %s",
+            card.get("idBoard")
+        )
+        return
 
     titulo = card["name"]
 
@@ -140,8 +147,12 @@ def processar_card(card_id):
 
 @app.route("/trello-webhook", methods=["GET", "POST", "HEAD"])
 def trello_webhook():
+
     if request.method in ["HEAD", "GET"]:
+        app.logger.info("Verificação do webhook recebida")
         return "Webhook ativo", 200
+
+    app.logger.info("Webhook Trello recebido")
 
     data = request.json
     if not data or "action" not in data:
@@ -160,4 +171,8 @@ def trello_webhook():
     return "", 200
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(
+        host="0.0.0.0",
+        port=5000,
+        debug=False
+    )
