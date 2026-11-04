@@ -91,13 +91,6 @@ def processar_card(card_id):
 
     card = response.json()
 
-    if card.get("idBoard") != BOARD_ID:
-        app.logger.info(
-            "Card ignorado: pertence a outra board. Board: %s",
-            card.get("idBoard")
-        )
-        return
-
     titulo = card["name"]
 
     categoria = card["labels"][0]["name"]
