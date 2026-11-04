@@ -7,7 +7,7 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 
-LIST_NAME = "Agendar Nas Redes Sociais"
+LIST_NAME = "Agendar Nas Redes"
 load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
