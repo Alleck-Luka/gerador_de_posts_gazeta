@@ -8,7 +8,6 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 LIST_NAME = "Agendar Nas Redes"
-BOARD_ID = os.getenv("BOARD_ID")
 load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
@@ -51,6 +50,8 @@ def anexar(card_id, caminhos):
                 )
 
             data = response.json()
+#            print("UPLOAD STATUS:", response.status_code)
+#            print("UPLOAD RESPONSE:", repr(response.text[:500]))
 
             # salva o attachment do feed
             if "Feed" in caminho:
@@ -89,12 +90,12 @@ def processar_card(card_id):
     if response.status_code != 200:
         return
 
-    card = response.json()
+    card = response.json()    
 
     titulo = card["name"]
 
     categoria = card["labels"][0]["name"]
-    
+
     app.logger.info(f"Processando card {card_id}")
     app.logger.info(f"Título: {titulo}")
     app.logger.info(f"Categoria: {categoria}")
@@ -108,7 +109,7 @@ def processar_card(card_id):
     if not imagem_url:
         app.logger.error(f"Erro ao obter imagem: {imagem_url}")
         return
-    
+
 
     app.logger.info(f"Imagem: {imagem_url}")
 
