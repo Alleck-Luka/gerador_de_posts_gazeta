@@ -52,8 +52,8 @@ def render_feed(base, titulo, categoria):
 
     categoria = categoria.upper()
 
-    padding_x = 30
-    padding_y = 24
+    padding_x = 24
+    padding_y = 20
 
     bbox = draw.textbbox((0, 0), categoria, font=font_categoria)
 
@@ -68,8 +68,9 @@ def render_feed(base, titulo, categoria):
     box_bottom = text_top - 40
     box_top = box_bottom - box_h
 
-    draw.rectangle(
+    draw.rounded_rectangle(
         (box_x, box_top, box_x + box_w, box_bottom),
+        radius=10,
         fill=COR_DESTAQUE
     )
 
